@@ -61,13 +61,19 @@ class DatabaseHelper {
     return result;
   }
 
+  Future<int> deleteNote(int id) async {
+    var db = await this.database;
+    int result =
+        await db.rawDelete('DELETE FROM $noteTable WHERE $colId = $id');
+    return result;
+  }
+
   Future<List<Map<String, dynamic>>> getNoteMapListByDate(
       int millisecond) async {
     Database db = await this.database;
 
-
-    var result = await db
-        .query(noteTable, where: '$colSpecificDate = ?', whereArgs: [millisecond]);
+    var result = await db.query(noteTable,
+        where: '$colSpecificDate = ?', whereArgs: [millisecond]);
     return result;
   }
 
@@ -90,6 +96,13 @@ class DatabaseHelper {
     }
 
     return noteList;
+  }
+
+  Future<int> updateNote(Note note) async {
+    var db = await this.database;
+    var result = await db.update(noteTable, note.toMap(),
+        where: '$colId = ?', whereArgs: [note.id]);
+    return result;
   }
 
   Future<List<Note>> getNoteListFromMillisecond(int millisecond) async {

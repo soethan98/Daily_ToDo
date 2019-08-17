@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/model/date_model.dart';
+import 'package:flutter_todo/utils/const.dart';
 import 'package:intl/intl.dart';
 
 class WeekCalender extends StatefulWidget {
@@ -60,15 +61,16 @@ class _WeekCalenderState extends State<WeekCalender> {
         itemBuilder: (BuildContext context, int index) {
           return new InkWell(
             onTap: () {
-              //print("Click on ${dateList[index].dateTime}");
+              // print("Click on ${dateList[index].dateTime}");
 
               setState(() {
                 dateList.forEach((element) => element.isSelected = false);
                 dateList[index].isSelected = true;
                 _dateTime['date'] = dateList[index].dateTime;
+                widget.onChanged(_dateTime);
               });
             },
-            child: new DateItem(dateList[index],context),
+            child: new DateItem(dateList[index], context),
           );
         },
       ),
@@ -79,14 +81,18 @@ class _WeekCalenderState extends State<WeekCalender> {
 class DateItem extends StatelessWidget {
   final DateModel _item;
   final BuildContext context;
-  DateItem(this._item,this.context);
+  DateItem(this._item, this.context);
 
   _dateItem(DateModel _item) {
     DateTime dateTime = _item.dateTime;
     return Card(
-      color: _item.isSelected ? Theme.of(context).accentColor: Colors.white,
+      color: _item.isSelected
+          ? Theme.of(context).accentColor
+          : Theme.of(context).backgroundColor,
       child: Container(
-        color: _item.isSelected ?Theme.of(context).accentColor : Colors.white,
+        color: _item.isSelected
+            ? Theme.of(context).accentColor
+            : Theme.of(context).backgroundColor,
         margin: EdgeInsets.all(8.0),
         alignment: Alignment.topCenter,
         height: 100.0,

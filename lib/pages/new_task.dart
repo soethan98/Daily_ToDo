@@ -81,6 +81,9 @@ class _NewTaskState extends State<NewTask> {
   Widget build(BuildContext context) {
     TextStyle textStyle = Theme.of(context).textTheme.title;
 
+    titleController.text = widget.note.title;
+    descriptionController.text = widget.note.description;
+
     return WillPopScope(
       onWillPop: () async {
         return Future.value(true);
@@ -88,7 +91,10 @@ class _NewTaskState extends State<NewTask> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('${widget.appbarTitle}'),
+          title: Text(
+            '${widget.appbarTitle}',
+            style: TextStyle(fontSize: 28.0),
+          ),
           elevation: 0.0,
         ),
         body: ListView(children: <Widget>[
@@ -104,10 +110,11 @@ class _NewTaskState extends State<NewTask> {
                     margin: EdgeInsets.only(top: 16.0, left: 6.0, right: 6.0),
                     child: TextField(
                       onChanged: (value) {
+                        updateNote.updateTitle(titleController.text);
+
                         setState(() {
                           _validateTitle = true;
                         });
-                        updateNote.updateTitle(titleController.text);
                       },
                       controller: titleController,
                       decoration: InputDecoration(
@@ -125,7 +132,8 @@ class _NewTaskState extends State<NewTask> {
                         ),
                         errorText:
                             _validateTitle ? null : 'Please Provide Some Text',
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle:
+                            TextStyle(color: Theme.of(context).accentColor),
                       ),
                     ),
                   ),
@@ -137,6 +145,7 @@ class _NewTaskState extends State<NewTask> {
                     child: TextField(
                       maxLines: 5,
                       onChanged: (value) {
+                        debugPrint('$value');
                         updateNote
                             .updateDescription(descriptionController.text);
                       },
@@ -154,7 +163,8 @@ class _NewTaskState extends State<NewTask> {
                           borderSide: BorderSide(
                               width: 3, color: Theme.of(context).accentColor),
                         ),
-                        labelStyle: TextStyle(color: Colors.black),
+                        labelStyle:
+                            TextStyle(color: Theme.of(context).accentColor),
                       ),
                     ),
                   ),
@@ -268,7 +278,6 @@ class _NewTaskState extends State<NewTask> {
                                 });
                               },
                               activeColor: Theme.of(context).accentColor,
-                              dragStartBehavior: DragStartBehavior.start,
                               value: false,
                             )
                           ],
@@ -308,7 +317,25 @@ class _NewTaskState extends State<NewTask> {
               elevation: 5.0,
               textColor: Colors.white,
               color: Theme.of(context).accentColor,
-              child: Text('Add Task'),
+              child: Text('Save Task'),
+            ),
+          ),
+          SizedBox(
+            height: 8.0,
+          ),
+          Container(
+            margin: EdgeInsets.only(right: 8.0, left: 8.0),
+            child: RaisedButton(
+              padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
+              onPressed: () {
+                setState(() {
+                  updateNote.delete();
+                });
+              },
+              elevation: 5.0,
+              textColor: Colors.white,
+              color: Colors.red,
+              child: Text('Delete Task'),
             ),
           )
         ]),

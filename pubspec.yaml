@@ -22,6 +22,8 @@ dependencies:
   sqflite: ^1.1.6
   path_provider: ^1.2.0
   intl: 0.15.8
+  cached_network_image: ^1.1.1
+
   
 
   
@@ -63,6 +65,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: IndieFlower
+      fonts:
+        - asset: assets/fonts/IndieFlower-Regular.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:

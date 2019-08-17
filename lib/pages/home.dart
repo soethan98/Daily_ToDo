@@ -7,6 +7,8 @@ import 'package:flutter_todo/model/note.dart';
 import 'package:flutter_todo/utils/database_helper.dart';
 import 'package:flutter_todo/custom/week_calender.dart';
 import 'package:flutter_todo/utils/_diamond_border.dart';
+import 'package:flutter_todo/custom/list_header.dart';
+import 'settings.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key}) : super(key: key);
@@ -35,22 +37,25 @@ class _HomePageState extends State<HomePage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   List<Note> noteList;
   int count = 0;
-  AssetImage assetImage = AssetImage('images/leisure.png');
+  DateTime _clickedDate = DateTime.now();
+  // AssetImage assetImage = AssetImage('images/leisure.png');
 
   void updateListView() {
-
-    debugPrint('fefef${DateTime(2019,8,16).millisecondsSinceEpoch}');
     final Future<Database> dbFuture = databaseHelper.initializeDatabase();
     dbFuture.then((database) {
-      Future<List<Note>> noteListFuture = databaseHelper
-          .getNoteListFromMillisecond(DateTime(2019,8,16).millisecondsSinceEpoch);
+      if (_clickedDate != null) {
+        Future<List<Note>> noteListFuture =
+            databaseHelper.getNoteListFromMillisecond(DateTime(
+                    _clickedDate.year, _clickedDate.month, _clickedDate.day)
+                .millisecondsSinceEpoch);
 
-      noteListFuture.then((noteList) {
-        setState(() {
-          this.noteList = noteList;
-          this.count = noteList.length;
+        noteListFuture.then((noteList) {
+          setState(() {
+            this.noteList = noteList;
+            this.count = noteList.length;
+          });
         });
-      });
+      }
     });
   }
 
@@ -78,7 +83,11 @@ class _HomePageState extends State<HomePage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.settings),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return Settings();
+              }));
+            },
           ),
         ],
       ),
@@ -90,127 +99,161 @@ class _HomePageState extends State<HomePage> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               WeekCalender(
-                onChanged: (_) {},
+                onChanged: (_dateTime) {
+                  _dateTime.forEach((k, v) {
+                    setState(() {
+                      _clickedDate = v;
+                      updateListView();
+                    });
+                  });
+                },
               ),
-              count>0 ? 
-              ListView(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                physics: ClampingScrollPhysics(),
-                children: <Widget>[
-                  ListHeader(listHeader: 'Pending Tasks'),
-                  ListView.builder(
-                      physics: ClampingScrollPhysics(),
-                      shrinkWrap: true,
+              count > 0
+                  ? ListView(
                       scrollDirection: Axis.vertical,
-                      itemCount: count,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          margin: EdgeInsets.all(12.0),
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey[700],
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(5.0)),
-                          child: ListTile(
-                            leading: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                ClipOval(
-                                  child: Material(
-                                    color: getPriorityColor(this
-                                        .noteList[index]
-                                        .priority), // button color
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0)),
-                                    child: SizedBox(
-                                      height: 15,
-                                      width: 15,
+                      shrinkWrap: true,
+                      physics: ClampingScrollPhysics(),
+                      children: <Widget>[
+                        ListHeader(listHeader: 'Pending Tasks'),
+                        ListView.builder(
+                            physics: ClampingScrollPhysics(),
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            itemCount: count,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container(
+                                margin: EdgeInsets.all(12.0),
+                                padding: EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[700],
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5.0)),
+                                child: ListTile(
+                                  leading: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      ClipOval(
+                                        child: Material(
+                                          color: getPriorityColor(this
+                                              .noteList[index]
+                                              .priority), // button color
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0)),
+                                          child: SizedBox(
+                                            height: 15,
+                                            width: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  subtitle:
+                                      Text('${noteList[index].description}'),
+                                  title: Text('${noteList[index].title}'),
+                                  trailing: IconButton(
+                                    onPressed: () {
+                                      navigateToDetail(
+                                          noteList[index], 'Update Task');
+                                    },
+                                    icon: Icon(
+                                      Icons.navigate_next,
+                                      size: 38.0,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                            subtitle: Text('${noteList[index].description}'),
-                            title: Text('${noteList[index].title}'),
-                            trailing: IconButton(
-                              onPressed: () {
-                                navigateToDetail(
-                                    noteList[index], 'Update Task');
-                              },
-                              icon: Icon(
-                                Icons.navigate_next,
-                                size: 38.0,
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                  ListHeader(listHeader: 'Done Tasks'),
-                  ListView.builder(
-                      physics: ClampingScrollPhysics(),
-                      shrinkWrap: true,
-                      scrollDirection: Axis.vertical,
-                      itemCount: count,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Container(
-                          margin: EdgeInsets.all(12.0),
-                          padding: EdgeInsets.symmetric(vertical: 4.0),
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey[700],
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(5.0)),
-                          child: ListTile(
-                            leading: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                ClipOval(
-                                  child: Material(
-                                    color: getPriorityColor(this
-                                        .noteList[index]
-                                        .priority), // button color
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0)),
-                                    child: SizedBox(
-                                      height: 15,
-                                      width: 15,
+                              );
+                            }),
+                        ListHeader(listHeader: 'Done Tasks'),
+                        ListView.builder(
+                            physics: ClampingScrollPhysics(),
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            itemCount: count,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container(
+                                margin: EdgeInsets.all(12.0),
+                                padding: EdgeInsets.symmetric(vertical: 4.0),
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[700],
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5.0)),
+                                child: ListTile(
+                                  leading: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      ClipOval(
+                                        child: Material(
+                                          color: getPriorityColor(this
+                                              .noteList[index]
+                                              .priority), // button color
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0)),
+                                          child: SizedBox(
+                                            height: 15,
+                                            width: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  subtitle:
+                                      Text('${noteList[index].description}'),
+                                  title: Text('${noteList[index].title}'),
+                                  trailing: IconButton(
+                                    onPressed: () {},
+                                    icon: Icon(
+                                      Icons.navigate_next,
+                                      size: 38.0,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                            subtitle: Text('${noteList[index].description}'),
-                            title: Text('${noteList[index].title}'),
-                            trailing: IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.navigate_next,
-                                size: 38.0,
-                              ),
-                            ),
+                              );
+                            }),
+                      ],
+                    )
+                  : new Container(
+                      margin: EdgeInsets.symmetric(vertical: 50.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Image(
+                            image: AssetImage('assets/leisure128.png'),
                           ),
-                        );
-                      }),
-                ],
-              ):new Container(
-                margin: EdgeInsets.symmetric(vertical: 16.0),
-                child: Image(
-                  image: AssetImage('assets/leisure128.png'),
-                ),
-              ),
+                          SizedBox(height: 8.0),
+                          Text(
+                            "Take Rest.",
+                            style: TextStyle(
+                                fontSize: 24.0,
+                                fontFamily: 'IndieFlower',
+                                fontWeight: FontWeight.w700),
+                          ),
+                          SizedBox(height: 8.0),
+                          Text(
+                            "You don't have any task.",
+                            style: TextStyle(
+                                fontSize: 22.0,
+                                fontFamily: 'IndieFlower',
+                                fontWeight: FontWeight.w500),
+                          )
+                        ],
+                      ),
+                    ),
             ],
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          navigateToDetail(Note(''), 'Add Note');
+          navigateToDetail(
+              Note('', '', DateTime.now().millisecondsSinceEpoch, 0, 2,
+                  DateTime.now().millisecondsSinceEpoch),
+              'Add Note');
         },
         child: Icon(Icons.add),
         shape: DiamondBorder(),
@@ -225,27 +268,11 @@ class _HomePageState extends State<HomePage> {
       return NewTask(note, title);
     }));
 
-    debugPrint('$result');
-
     if (result == true) {
+      // setState(() {
+      //   count = noteList.length;
+      // });
       updateListView();
     }
-  }
-}
-
-class ListHeader extends StatelessWidget {
-  final String listHeader;
-  const ListHeader({Key key, this.listHeader}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(left: 14.0),
-      child: Align(
-        alignment: FractionalOffset.topLeft,
-        child: Text('$listHeader',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500)),
-      ),
-    );
   }
 }

@@ -26,14 +26,14 @@ class UpdateNote {
   }
 
   void save() async {
-    debugPrint('Complete:${note.specificDate}');
+    debugPrint('Complete:${note.date}');
 
     moveToLastScreen();
     // // note.date = DateTime.now().millisecondsSinceEpoch;
     int result;
     if (note.id != null) {
       // Case 1: Update operation
-      // result = await helper.updateNote(note);
+      result = await helper.updateNote(note);
     } else {
       // Case 2: Insert Operation
       result = await helper.insertNote(note);
@@ -88,6 +88,23 @@ class UpdateNote {
       case false:
         note.alarm = 0;
         break;
+    }
+  }
+
+  void delete() async {
+    moveToLastScreen();
+
+    if (note.id == null) {
+      _showAlertDialog('Status', 'No Note was deleted');
+      return;
+    }
+
+    // Case 2: User is trying to delete the old note that already has a valid ID.
+    int result = await helper.deleteNote(note.id);
+    if (result != 0) {
+      _showAlertDialog('Status', 'Note Deleted Successfully');
+    } else {
+      _showAlertDialog('Status', 'Error Occured while Deleting Note');
     }
   }
 }
