@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -211,7 +210,6 @@ class _NewTaskState extends State<NewTask> {
                       IconButton(
                         icon: Icon(
                           Icons.calendar_today,
-                          color: Theme.of(context).accentColor,
                         ),
                         onPressed: () async {
                           var _selectedDate = await showDatePicker(
@@ -242,7 +240,6 @@ class _NewTaskState extends State<NewTask> {
                             IconButton(
                               icon: Icon(
                                 Icons.timer,
-                                color: Theme.of(context).accentColor,
                               ),
                               onPressed: () async {
                                 var _selectedTime = await showTimePicker(

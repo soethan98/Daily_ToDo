@@ -1,44 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_todo/utils/bloc/bloc.dart';
+import 'package:flutter_todo/utils/bloc/theme_bloc.dart';
 import 'package:flutter_todo/utils/const.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home.dart';
 import 'package:flutter/services.dart';
 
-void main() => runApp(MyApp());
+Future<void> main() async {
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(statusBarColor: Colors.transparent),
+  );
 
-class MyApp extends StatefulWidget {
-  // This widget is the root of your application.
-  @override
-  _MyAppState createState() => _MyAppState();
+  Constants.prefs = await SharedPreferences.getInstance();
+  runApp(MyApp());
 }
 
-class _MyAppState extends State<MyApp> {
-  bool isDark = false;
-
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: isDark ? Constants.darkPrimary : Constants.lightPrimary,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-    ));
-  }
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return BlocProvider(
+      builder: (context) => ThemeBloc(),
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: _buildHomePage,
+      ),
+    );
+  }
+
+  Widget _buildHomePage(
+    BuildContext context,
+    ThemeState state,
+  ) {
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Daily Todo',
-      theme: isDark ? Constants.darkTheme : Constants.lightTheme,
-
-      // theme: ThemeData(
-      //   accentColor: Colors.lightBlue[800],
-      //   primaryColor: Colors.white,
-
-      //   scaffoldBackgroundColor: Colors.white
-
-      // ),
+      title: 'Daily ToDo',
       home: HomePage(),
+      theme: state.themeData,
     );
   }
 }

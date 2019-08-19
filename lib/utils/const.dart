@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Constants {
   static Color lightPrimary = Colors.white;
@@ -11,23 +12,8 @@ class Constants {
   static Color darkBG = Colors.black;
   static Color white = Colors.white;
 
-  static ThemeData lightTheme = ThemeData(
-      backgroundColor: lightBG,
-      primaryColor: lightPrimary,
-      accentColor: lightAccent,
-      cursorColor: lightAccent,
-      cardColor: lightBG,
-      scaffoldBackgroundColor: lightBG,
-      primarySwatch: Colors.orange);
-
-  static ThemeData darkTheme = ThemeData(
-      brightness: Brightness.dark,
-      backgroundColor: darkBG,
-      primaryColor: darkPrimary,
-      accentColor: darkAccent,
-      scaffoldBackgroundColor: darkBG,
-      cursorColor: darkAccent,
-      cardColor: darkBG,
-      primarySwatch: Colors.orange
-      );
+  //SharePref
+  //* Preferences
+  static SharedPreferences prefs;
+  static const String darkModePref = "darkModePref";
 }
