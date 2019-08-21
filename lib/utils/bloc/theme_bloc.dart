@@ -11,12 +11,14 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   ThemeState get initialState => Constants.prefs.getBool(Constants.darkModePref)
       ? ThemeState(themeData: appThemeData[AppTheme.DarkTheme])
       : ThemeState(themeData: appThemeData[AppTheme.LightTheme]);
+      
 
   @override
   Stream<ThemeState> mapEventToState(
     ThemeEvent event,
   ) async* {
     if (event is ThemeChanged) {
+      
       if (event.appTheme == AppTheme.LightTheme) {
         _setSharedPref(false);
       } else if (event.appTheme == AppTheme.DarkTheme) {

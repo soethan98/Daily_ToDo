@@ -1,16 +1,23 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_todo/main.dart';
 import 'package:flutter_todo/model/note.dart';
+import 'package:flutter_todo/pages/home.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_todo/utils/update_note.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NewTask extends StatefulWidget {
   final Note note;
   final String appbarTitle;
 
   NewTask(this.note, this.appbarTitle);
+
   @override
   _NewTaskState createState() => _NewTaskState();
 }
@@ -35,6 +42,10 @@ class _NewTaskState extends State<NewTask> {
 
   bool _validateTitle = true;
 
+  bool _isNotificationOn = false;
+
+//  var platform = MethodChannel('crossingthestreams.io/resourceResolver');
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +59,23 @@ class _NewTaskState extends State<NewTask> {
       _dateInfo = dateFormat.format(DateTime.now());
       _timeInfo = timeFormat.format(DateTime.now());
     }
+
     updateNote = UpdateNote(widget.note, context);
+
+    _isNotificationOn = updateNote.isNotiOnStatus;
+
+    _initializeNotification();
+  }
+
+  _initializeNotification() {
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('app_icon');
+    var initializationSettingsIOS = IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    var initializationSettings = InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
   }
 
   String getPriorityAsString(int value) {
@@ -270,12 +297,14 @@ class _NewTaskState extends State<NewTask> {
                             SizedBox(width: 5.0),
                             Switch(
                               onChanged: (bool value) {
+                                _isNotificationOn = value;
                                 setState(() {
-                                  updateNote.updateAlarmSwitch(value);
+                                  updateNote
+                                      .updateAlarmSwitch(_isNotificationOn);
                                 });
                               },
                               activeColor: Theme.of(context).accentColor,
-                              value: false,
+                              value: _isNotificationOn,
                             )
                           ],
                         ),
@@ -293,7 +322,7 @@ class _NewTaskState extends State<NewTask> {
             margin: EdgeInsets.only(right: 8.0, left: 8.0),
             child: RaisedButton(
               padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
-              onPressed: () {
+              onPressed: () async  {
                 if (titleController.text.isEmpty) {
                   setState(() {
                     _validateTitle = false;
@@ -309,7 +338,10 @@ class _NewTaskState extends State<NewTask> {
                   }
 
                   updateNote.save();
+
                 }
+                if (_isNotificationOn)await  _scheduleNotification();
+
               },
               elevation: 5.0,
               textColor: Colors.white,
@@ -324,10 +356,11 @@ class _NewTaskState extends State<NewTask> {
             margin: EdgeInsets.only(right: 8.0, left: 8.0),
             child: RaisedButton(
               padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   updateNote.delete();
                 });
+                if (_isNotificationOn) await _cancelNotification();
               },
               elevation: 5.0,
               textColor: Colors.white,
@@ -342,5 +375,87 @@ class _NewTaskState extends State<NewTask> {
 
   void moveToLastScreen() {
     Navigator.pop(context, true);
+  }
+
+  Future<void> onDidReceiveLocalNotification(
+      int id, String title, String body, String payload) async {
+    // display a dialog with the notification details, tap ok to go to another page
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: Text('Ok'),
+            onPressed: () async {
+              Navigator.of(context, rootNavigator: true).pop();
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomePage(),
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Future<void> onSelectNotification(String payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: ' + payload);
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  Future<void> _scheduleNotification() async {
+    var scheduledNotificationDateTime = DateTime(
+        _selectDate.year,
+        _selectDate.month,
+        _selectDate.day,
+        _selectTime.hour,
+        _selectTime.minute);
+    var vibrationPattern = Int64List(4);
+    vibrationPattern[0] = 0;
+    vibrationPattern[1] = 1000;
+    vibrationPattern[2] = 5000;
+    vibrationPattern[3] = 2000;
+
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        '1', 'Notifications', 'Schedule Notification',
+        icon: 'app_icon',
+//        sound: 'slow_spring_board',
+//        largeIcon: 'sample_large_icon',
+        largeIconBitmapSource: BitmapSource.Drawable,
+        vibrationPattern: vibrationPattern,
+        importance: Importance.Max,
+        priority: Priority.High,
+        enableLights: true,
+        color: const Color.fromARGB(255, 255, 0, 0),
+        ledColor: const Color.fromARGB(255, 255, 0, 0),
+        ledOnMs: 1000,
+        ledOffMs: 500);
+    var iOSPlatformChannelSpecifics =
+        IOSNotificationDetails(sound: "slow_spring_board.aiff");
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.schedule(
+        0,
+        '${widget.note.title}',
+        '${widget.note.description}',
+        scheduledNotificationDateTime,
+        platformChannelSpecifics);
+  }
+
+  Future<void> _cancelNotification() async {
+    await flutterLocalNotificationsPlugin.cancel(0);
   }
 }

@@ -90,6 +90,16 @@ class UpdateNote {
     }
   }
 
+  bool get isNotiOnStatus {
+    switch(note.isAlarm){
+      case 0: return false;
+      break;
+      case 1: return true;
+      break;
+    }
+    return false;
+  }
+
   void delete() async {
     moveToLastScreen();
 

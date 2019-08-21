@@ -6,13 +6,23 @@ import 'package:flutter_todo/utils/const.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 Future<void> main() async {
+
+  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
   Constants.prefs = await SharedPreferences.getInstance();
+  if (Constants.prefs.getBool(Constants.darkModePref) == null) {
+    Constants.prefs.setBool(Constants.darkModePref, false);
+  }
   runApp(MyApp());
 }
 
