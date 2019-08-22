@@ -91,11 +91,13 @@ class UpdateNote {
   }
 
   bool get isNotiOnStatus {
-    switch(note.isAlarm){
-      case 0: return false;
-      break;
-      case 1: return true;
-      break;
+    switch (note.isAlarm) {
+      case 0:
+        return false;
+        break;
+      case 1:
+        return true;
+        break;
     }
     return false;
   }
@@ -115,5 +117,9 @@ class UpdateNote {
     } else {
       _showAlertDialog('Status', 'Error Occured while Deleting Note');
     }
+  }
+
+  Future<int> incrementCounter()async {
+    return await helper.getCount();
   }
 }

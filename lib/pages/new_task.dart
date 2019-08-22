@@ -43,6 +43,7 @@ class _NewTaskState extends State<NewTask> {
   bool _validateTitle = true;
 
   bool _isNotificationOn = false;
+  int _notificationId;
 
 //  var platform = MethodChannel('crossingthestreams.io/resourceResolver');
 
@@ -65,6 +66,22 @@ class _NewTaskState extends State<NewTask> {
     _isNotificationOn = updateNote.isNotiOnStatus;
 
     _initializeNotification();
+
+    widget.note.id != null
+        ? _notificationId = widget.note.id
+        : incrementCount();
+
+
+
+  }
+
+  incrementCount() {
+    updateNote.incrementCounter().then((count) {
+
+
+      _notificationId = count + 1;
+      debugPrint('ID:$_notificationId');
+    });
   }
 
   _initializeNotification() {
@@ -322,7 +339,7 @@ class _NewTaskState extends State<NewTask> {
             margin: EdgeInsets.only(right: 8.0, left: 8.0),
             child: RaisedButton(
               padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
-              onPressed: () async  {
+              onPressed: () async {
                 if (titleController.text.isEmpty) {
                   setState(() {
                     _validateTitle = false;
@@ -338,10 +355,8 @@ class _NewTaskState extends State<NewTask> {
                   }
 
                   updateNote.save();
-
                 }
-                if (_isNotificationOn)await  _scheduleNotification();
-
+                _isNotificationOn ? await _scheduleNotification():await _cancelNotification() ;
               },
               elevation: 5.0,
               textColor: Colors.white,
@@ -416,6 +431,7 @@ class _NewTaskState extends State<NewTask> {
   }
 
   Future<void> _scheduleNotification() async {
+    debugPrint('dasfadl$_notificationId');
     var scheduledNotificationDateTime = DateTime(
         _selectDate.year,
         _selectDate.month,
@@ -448,7 +464,7 @@ class _NewTaskState extends State<NewTask> {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
     await flutterLocalNotificationsPlugin.schedule(
-        0,
+        _notificationId,
         '${widget.note.title}',
         '${widget.note.description}',
         scheduledNotificationDateTime,
@@ -456,6 +472,6 @@ class _NewTaskState extends State<NewTask> {
   }
 
   Future<void> _cancelNotification() async {
-    await flutterLocalNotificationsPlugin.cancel(0);
+    await flutterLocalNotificationsPlugin.cancel(_notificationId);
   }
 }

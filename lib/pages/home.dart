@@ -38,6 +38,8 @@ class _HomePageState extends State<HomePage> {
   List<Note> noteList;
   int count = 0;
   DateTime _clickedDate = DateTime.now();
+
+
   // AssetImage assetImage = AssetImage('images/leisure.png');
 
   void updateListView() {
@@ -50,8 +52,12 @@ class _HomePageState extends State<HomePage> {
                 .millisecondsSinceEpoch);
 
         noteListFuture.then((noteList) {
+          for(var note in noteList){
+            debugPrint('${note.id}');
+          }
           setState(() {
             this.noteList = noteList;
+
             this.count = noteList.length;
           });
         });
@@ -62,6 +68,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    databaseHelper.getCount().then((i){
+      debugPrint('Count: $i');
+    });
   }
 
   @override
