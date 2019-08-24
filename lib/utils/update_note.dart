@@ -122,4 +122,20 @@ class UpdateNote {
   Future<int> incrementCounter()async {
     return await helper.getCount();
   }
+
+
+  DateTime millisecondToDate(int millisecond){
+
+
+    return DateTime.fromMillisecondsSinceEpoch(millisecond);
+
+
+  }
+
+   millisecondToTime(int millisecond){
+    var dateTime = DateTime.fromMillisecondsSinceEpoch(millisecond);
+
+    return TimeOfDay.fromDateTime(dateTime);
+
+  }
 }

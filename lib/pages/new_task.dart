@@ -25,7 +25,6 @@ class NewTask extends StatefulWidget {
 class _NewTaskState extends State<NewTask> {
   static var _priorities = ['High', 'Medium', 'Low'];
 
-  // DatabaseHelper helper = DatabaseHelper();
   UpdateNote updateNote;
 
   final dateFormat = DateFormat("EEEE, d");
@@ -45,7 +44,8 @@ class _NewTaskState extends State<NewTask> {
   bool _isNotificationOn = false;
   int _notificationId;
 
-//  var platform = MethodChannel('crossingthestreams.io/resourceResolver');
+  final snackBar = SnackBar(content: Text('Choose Date and Time'));
+  var _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -70,15 +70,10 @@ class _NewTaskState extends State<NewTask> {
     widget.note.id != null
         ? _notificationId = widget.note.id
         : incrementCount();
-
-
-
   }
 
   incrementCount() {
     updateNote.incrementCounter().then((count) {
-
-
       _notificationId = count + 1;
       debugPrint('ID:$_notificationId');
     });
@@ -86,7 +81,7 @@ class _NewTaskState extends State<NewTask> {
 
   _initializeNotification() {
     var initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
+    AndroidInitializationSettings('app_icon');
     var initializationSettingsIOS = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initializationSettings = InitializationSettings(
@@ -113,16 +108,24 @@ class _NewTaskState extends State<NewTask> {
 
   void updateDateTime() {
     if (_selectDate == null) {
-      _selectDate = DateTime.now();
+      widget.note.date != null
+          ? _selectDate = updateNote.millisecondToDate(widget.note.date)
+          : DateTime.now();
     } else if (_selectTime == null) {
-      _selectTime = TimeOfDay.now();
+
+      widget.note.date != null
+          ? _selectTime = updateNote.millisecondToTime(widget.note.date)
+          : TimeOfDay.now();
     }
     updateNote.updateDateTime(_selectDate, _selectTime);
   }
 
   @override
   Widget build(BuildContext context) {
-    TextStyle textStyle = Theme.of(context).textTheme.title;
+    TextStyle textStyle = Theme
+        .of(context)
+        .textTheme
+        .title;
 
     titleController.text = widget.note.title;
     descriptionController.text = widget.note.description;
@@ -132,6 +135,7 @@ class _NewTaskState extends State<NewTask> {
         return Future.value(true);
       },
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           centerTitle: true,
           title: Text(
@@ -155,9 +159,9 @@ class _NewTaskState extends State<NewTask> {
                       onChanged: (value) {
                         updateNote.updateTitle(titleController.text);
 
-                        setState(() {
-                          _validateTitle = true;
-                        });
+//                        setState(() {
+//                          _validateTitle = true;
+//                        });
                       },
                       controller: titleController,
                       decoration: InputDecoration(
@@ -167,16 +171,22 @@ class _NewTaskState extends State<NewTask> {
                             borderRadius: BorderRadius.all(Radius.circular(4)),
                             borderSide: BorderSide(
                                 width: 3,
-                                color: Theme.of(context).accentColor)),
+                                color: Theme
+                                    .of(context)
+                                    .accentColor)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 3, color: Theme.of(context).accentColor),
+                              width: 3, color: Theme
+                              .of(context)
+                              .accentColor),
                         ),
                         errorText:
-                            _validateTitle ? null : 'Please Provide Some Text',
+                        _validateTitle ? null : 'Please Provide Some Text',
                         labelStyle:
-                            TextStyle(color: Theme.of(context).accentColor),
+                        TextStyle(color: Theme
+                            .of(context)
+                            .accentColor),
                       ),
                     ),
                   ),
@@ -200,14 +210,20 @@ class _NewTaskState extends State<NewTask> {
                             borderRadius: BorderRadius.all(Radius.circular(4)),
                             borderSide: BorderSide(
                                 width: 3,
-                                color: Theme.of(context).accentColor)),
+                                color: Theme
+                                    .of(context)
+                                    .accentColor)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(4)),
                           borderSide: BorderSide(
-                              width: 3, color: Theme.of(context).accentColor),
+                              width: 3, color: Theme
+                              .of(context)
+                              .accentColor),
                         ),
                         labelStyle:
-                            TextStyle(color: Theme.of(context).accentColor),
+                        TextStyle(color: Theme
+                            .of(context)
+                            .accentColor),
                       ),
                     ),
                   ),
@@ -287,7 +303,9 @@ class _NewTaskState extends State<NewTask> {
                               ),
                               onPressed: () async {
                                 var _selectedTime = await showTimePicker(
-                                    initialTime: TimeOfDay.now(),
+                                    initialTime: widget.note != null
+                                        ? updateNote.millisecondToTime(
+                                        widget.note.date) : TimeOfDay.now(),
                                     context: context);
                                 if (_selectedTime != null) {
                                   setState(() {
@@ -320,7 +338,9 @@ class _NewTaskState extends State<NewTask> {
                                       .updateAlarmSwitch(_isNotificationOn);
                                 });
                               },
-                              activeColor: Theme.of(context).accentColor,
+                              activeColor: Theme
+                                  .of(context)
+                                  .accentColor,
                               value: _isNotificationOn,
                             )
                           ],
@@ -350,17 +370,22 @@ class _NewTaskState extends State<NewTask> {
                   });
 
                   if (_selectDate == null || _selectTime == null) {
-                    debugPrint('Choose Time and Date');
+                    _scaffoldKey.currentState.showSnackBar(snackBar);
+
                     return;
                   }
 
                   updateNote.save();
                 }
-                _isNotificationOn ? await _scheduleNotification():await _cancelNotification() ;
+                _isNotificationOn
+                    ? await _scheduleNotification()
+                    : await _cancelNotification();
               },
               elevation: 5.0,
               textColor: Colors.white,
-              color: Theme.of(context).accentColor,
+              color: Theme
+                  .of(context)
+                  .accentColor,
               child: Text('Save Task'),
             ),
           ),
@@ -392,30 +417,31 @@ class _NewTaskState extends State<NewTask> {
     Navigator.pop(context, true);
   }
 
-  Future<void> onDidReceiveLocalNotification(
-      int id, String title, String body, String payload) async {
+  Future<void> onDidReceiveLocalNotification(int id, String title, String body,
+      String payload) async {
     // display a dialog with the notification details, tap ok to go to another page
     await showDialog(
       context: context,
-      builder: (BuildContext context) => CupertinoAlertDialog(
-        title: Text(title),
-        content: Text(body),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: Text('Ok'),
-            onPressed: () async {
-              Navigator.of(context, rootNavigator: true).pop();
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HomePage(),
-                ),
-              );
-            },
-          )
-        ],
-      ),
+      builder: (BuildContext context) =>
+          CupertinoAlertDialog(
+            title: Text(title),
+            content: Text(body),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                child: Text('Ok'),
+                onPressed: () async {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomePage(),
+                    ),
+                  );
+                },
+              )
+            ],
+          ),
     );
   }
 
@@ -447,6 +473,8 @@ class _NewTaskState extends State<NewTask> {
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
         '1', 'Notifications', 'Schedule Notification',
         icon: 'app_icon',
+
+
 //        sound: 'slow_spring_board',
 //        largeIcon: 'sample_large_icon',
         largeIconBitmapSource: BitmapSource.Drawable,
@@ -459,7 +487,7 @@ class _NewTaskState extends State<NewTask> {
         ledOnMs: 1000,
         ledOffMs: 500);
     var iOSPlatformChannelSpecifics =
-        IOSNotificationDetails(sound: "slow_spring_board.aiff");
+    IOSNotificationDetails(sound: "slow_spring_board.aiff");
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
@@ -468,7 +496,7 @@ class _NewTaskState extends State<NewTask> {
         '${widget.note.title}',
         '${widget.note.description}',
         scheduledNotificationDateTime,
-        platformChannelSpecifics);
+        platformChannelSpecifics,androidAllowWhileIdle: true);
   }
 
   Future<void> _cancelNotification() async {

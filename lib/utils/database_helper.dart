@@ -119,6 +119,8 @@ class DatabaseHelper {
   }
 
 
+
+
   Future<int> getCount() async {
     Database db = await this.database;
     List<Map<String, dynamic>> x = await db.rawQuery('SELECT COUNT (*) from $noteTable');

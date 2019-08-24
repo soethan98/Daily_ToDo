@@ -23,22 +23,29 @@ class AboutMe extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: CachedNetworkImage(
-              imageUrl: 'https://randomuser.me/api/portraits/men/35.jpg',
-              imageBuilder: (context, imageProvider) {
-                return Container(
-                  width: 100.0,
-                  height: 100.0,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.fill,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                );
-              },
+            child: CircleAvatar(
+              backgroundImage: AssetImage('assets/boy128.png'),
+              minRadius: 20.0,
+              maxRadius: 50.0,
+              backgroundColor: Theme.of(context).accentColor,
+
             ),
+//            child: CachedNetworkImage(
+//              imageUrl: 'https://randomuser.me/api/portraits/men/35.jpg',
+//              imageBuilder: (context, imageProvider) {
+//                return Container(
+//                  width: 100.0,
+//                  height: 100.0,
+//                  decoration: BoxDecoration(
+//                    image: DecorationImage(
+//                      image: imageProvider,
+//                      fit: BoxFit.fill,
+//                    ),
+//                    shape: BoxShape.circle,
+//                  ),
+//                );
+//              },
+//            ),
           ),
           SizedBox(height: 16.0),
           Text('Soe Than',

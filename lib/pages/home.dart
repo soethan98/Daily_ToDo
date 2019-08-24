@@ -35,10 +35,13 @@ Color getPriorityColor(int priority) {
 
 class _HomePageState extends State<HomePage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
-  List<Note> noteList;
+  List<Note> pendingNoteList;
+  List<Note> doneNoteList;
+
+//  int pendingCount = 0;
+//  int doneCount = 0;
   int count = 0;
   DateTime _clickedDate = DateTime.now();
-
 
   // AssetImage assetImage = AssetImage('images/leisure.png');
 
@@ -52,13 +55,26 @@ class _HomePageState extends State<HomePage> {
                 .millisecondsSinceEpoch);
 
         noteListFuture.then((noteList) {
-          for(var note in noteList){
-            debugPrint('${note.id}');
-          }
           setState(() {
-            this.noteList = noteList;
+            for (var note in noteList) {
+              debugPrint(
+                  '${note.date}--Date-- ${DateTime.now().millisecondsSinceEpoch}');
+              note.date > DateTime.now().millisecondsSinceEpoch
+                  ? pendingNoteList.add(note)
+                  : doneNoteList.add(note);
+            }
+
+            debugPrint('${pendingNoteList.length} --- ${doneNoteList.length}');
 
             this.count = noteList.length;
+            debugPrint('$count ${noteList.length} fedfefl');
+//            pendingNoteList.clear();
+//            doneNoteList.clear();
+
+//            this.pendingNoteList = noteList;
+
+//            this.pendingCount = pendingNoteList.length;
+//            this.doneCount = doneNoteList.length;
           });
         });
       }
@@ -68,15 +84,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    databaseHelper.getCount().then((i){
+    databaseHelper.getCount().then((i) {
       debugPrint('Count: $i');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (noteList == null) {
-      noteList = List<Note>();
+    if (pendingNoteList == null && doneNoteList == null) {
+      pendingNoteList = List<Note>();
+      doneNoteList = List<Note>();
+
       updateListView();
     }
 
@@ -109,9 +127,13 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               WeekCalender(
                 onChanged: (_dateTime) {
+                  pendingNoteList.clear();
+                  doneNoteList.clear();
+
                   _dateTime.forEach((k, v) {
                     setState(() {
                       _clickedDate = v;
+
                       updateListView();
                     });
                   });
@@ -123,12 +145,14 @@ class _HomePageState extends State<HomePage> {
                       shrinkWrap: true,
                       physics: ClampingScrollPhysics(),
                       children: <Widget>[
-                        ListHeader(listHeader: 'Pending Tasks'),
+                        ListHeader(
+                            listHeader: 'Pending Tasks',
+                            count: pendingNoteList.length),
                         ListView.builder(
                             physics: ClampingScrollPhysics(),
                             shrinkWrap: true,
                             scrollDirection: Axis.vertical,
-                            itemCount: count,
+                            itemCount: pendingNoteList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Container(
                                 margin: EdgeInsets.all(12.0),
@@ -146,7 +170,7 @@ class _HomePageState extends State<HomePage> {
                                       ClipOval(
                                         child: Material(
                                           color: getPriorityColor(this
-                                              .noteList[index]
+                                              .pendingNoteList[index]
                                               .priority), // button color
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -159,13 +183,14 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ],
                                   ),
-                                  subtitle:
-                                      Text('${noteList[index].description}'),
-                                  title: Text('${noteList[index].title}'),
+                                  subtitle: Text(
+                                      '${pendingNoteList[index].description}'),
+                                  title:
+                                      Text('${pendingNoteList[index].title}'),
                                   trailing: IconButton(
                                     onPressed: () {
-                                      navigateToDetail(
-                                          noteList[index], 'Update Task');
+                                      navigateToDetail(pendingNoteList[index],
+                                          'Update Task');
                                     },
                                     icon: Icon(
                                       Icons.navigate_next,
@@ -175,12 +200,15 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                             }),
-                        ListHeader(listHeader: 'Done Tasks'),
+                        ListHeader(
+                          listHeader: 'Done Tasks',
+                          count: doneNoteList.length,
+                        ),
                         ListView.builder(
                             physics: ClampingScrollPhysics(),
                             shrinkWrap: true,
                             scrollDirection: Axis.vertical,
-                            itemCount: count,
+                            itemCount: doneNoteList.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Container(
                                 margin: EdgeInsets.all(12.0),
@@ -198,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                                       ClipOval(
                                         child: Material(
                                           color: getPriorityColor(this
-                                              .noteList[index]
+                                              .doneNoteList[index]
                                               .priority), // button color
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -211,11 +239,19 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ],
                                   ),
-                                  subtitle:
-                                      Text('${noteList[index].description}'),
-                                  title: Text('${noteList[index].title}'),
+                                  subtitle: Text(
+                                    '${doneNoteList[index].description}',
+                                    style: TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                        decorationColor: Theme.of(context).accentColor),
+                                  ),
+                                  title: Text('${doneNoteList[index].title}',
+                                      style: TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,decorationColor: Theme.of(context).accentColor,decorationThickness: 3.0)),
                                   trailing: IconButton(
-                                    onPressed: () {},
+                                    onPressed: () => navigateToDetail(
+                                        doneNoteList[index], 'Update Task'),
                                     icon: Icon(
                                       Icons.navigate_next,
                                       size: 38.0,
@@ -278,9 +314,9 @@ class _HomePageState extends State<HomePage> {
     }));
 
     if (result == true) {
-      // setState(() {
-      //   count = noteList.length;
-      // });
+      pendingNoteList.clear();
+      doneNoteList.clear();
+
       updateListView();
     }
   }
